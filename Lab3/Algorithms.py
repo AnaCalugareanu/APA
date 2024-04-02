@@ -1,38 +1,57 @@
 from collections import defaultdict, deque
 
 
-class NetworkMap:
+class ExploreDFS:
+    #Depth-First Search
 
     def __init__(self):
         self.connections = defaultdict(list)
 
     def linkNodes(self, node1, node2):
+        #Link two nodes in the graph
         self.connections[node1].append(node2)
 
-    def _exploreDFS(self, node, seen):
+    def exploreFromNode(self, node, seen):
+        #Recursively explore connected nodes
         seen.add(node)
-        print(node, end=' ')
-
         for adjacent in self.connections[node]:
             if adjacent not in seen:
-                self._exploreDFS(adjacent, seen)
+                self.exploreFromNode(adjacent, seen)
 
-    def traverseDFS(self, startNode):
-        seen = set()
-        self._exploreDFS(startNode, seen)
+    def traverse(self, startNode):
+        #Start DFS traversal from a given node
+        visitedNodes = set()
+        self.exploreFromNode(startNode, visitedNodes)
 
-    def traverseBFS(self, startNode):
-        queue = deque()
-        seen = [False] * (max(self.connections.keys()) + 1)
 
-        seen[startNode] = True
-        queue.append(startNode)
+class ExploreBFS:
+    # Breadth-First Search
 
-        while queue:
-            currentNode = queue.popleft()
-            print(currentNode, end=" ")
+    def __init__(self):
+        self.nodeLinks = defaultdict(list)
 
-            for adjacent in self.connections[currentNode]:
-                if not seen[adjacent]:
-                    seen[adjacent] = True
-                    queue.append(adjacent)
+    def connect(self, node1, node2):
+        #Connect two nodes bidirectionally
+        self.nodeLinks[node1].append(node2)
+        self.nodeLinks[node2].append(node1)
+
+    def printGraph(self):
+        #Print the adjacency list of the graph
+        for node, edges in self.nodeLinks.items():
+            print(f'{node}: {edges}')
+
+    def traverseFrom(self, rootNode):
+        #Perform BFS starting from rootNode
+        toVisit = deque()
+        largestNode = max(self.nodeLinks.keys(), default=-1)
+        visited = [False] * (largestNode + 1)
+
+        visited[rootNode] = True
+        toVisit.append(rootNode)
+
+        while toVisit:
+            current = toVisit.popleft()
+            for neighbour in self.nodeLinks[current]:
+                if not visited[neighbour]:
+                    visited[neighbour] = True
+                    toVisit.append(neighbour)

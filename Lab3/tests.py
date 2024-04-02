@@ -1,45 +1,63 @@
-from Algorithms import NetworkMap
+import time
 import matplotlib
-
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-import random
-import time
-import graphviz
+from Algorithms import ExploreDFS, ExploreBFS
+import pandas as pd
+from networkx import erdos_renyi_graph
 
-networks = []
+nodeCounts = [4, 8, 16, 32, 64, 128, 256, 512]
+dfsDurations = []
+bfsDurations = []
 
-for i in range(10):
-    network = NetworkMap()
-    for j in range(10):
-        network.linkNodes(j, random.randint(0, 9))
-    networks.append(network)
+# Testing DFS
+for count in nodeCounts:
+    randomGraph = erdos_renyi_graph(count, 0.5)
+    explorer = ExploreDFS()
+    for edge in randomGraph.edges:
+        explorer.linkNodes(*edge)
+    startTime = time.perf_counter()
+    explorer.traverse(0)
+    endTime = time.perf_counter()
+    dfsDurations.append(endTime - startTime)
 
-for i, network in enumerate(networks):
-    graphVisual = graphviz.Digraph(comment='Network Visualization')
-    for node in network.connections:
-        for neighbor in network.connections[node]:
-            graphVisual.edge(str(node), str(neighbor))
-    graphVisual.render('network' + str(i))
-
-executionTimeDFS = []
-executionTimeBFS = []
-
-for network in networks:
-    start = time.perf_counter()
-    network.traverseDFS(1)
-    end = time.perf_counter()
-    executionTimeDFS.append(end - start)
-
-    start = time.perf_counter()
-    network.traverseBFS(1)
-    end = time.perf_counter()
-    executionTimeBFS.append(end - start)
-
-plt.plot(range(1, len(networks) + 1), executionTimeDFS, label="DFS Time")
-plt.plot(range(1, len(networks) + 1), executionTimeBFS, label="BFS Time")
-plt.xlabel('Network Instance')
-plt.ylabel('Execution Time')
-plt.title('Performance Analysis: DFS vs BFS')
+# Plotting DFS Results
+plt.plot(nodeCounts, dfsDurations, label="Depth First Search")
+plt.xlabel('Nodes Count')
+plt.ylabel('Duration (seconds)')
+plt.title('DFS Performance')
 plt.legend()
 plt.show()
+
+# Testing BFS
+for count in nodeCounts:
+    randomGraph = erdos_renyi_graph(count, 0.5)
+    explorer = ExploreBFS()
+    for edge in randomGraph.edges:
+        explorer.connect(*edge)
+    startTime = time.perf_counter()
+    explorer.traverseFrom(0)
+    endTime = time.perf_counter()
+    bfsDurations.append(endTime - startTime)
+
+# Plotting BFS Results
+plt.plot(nodeCounts, bfsDurations, label="Breadth First Search")
+plt.xlabel('Nodes Count')
+plt.ylabel('Duration (seconds)')
+plt.title('BFS Performance')
+plt.legend()
+plt.show()
+
+# Combined Plot
+plt.plot(nodeCounts, dfsDurations, label="DFS")
+plt.plot(nodeCounts, bfsDurations, label="BFS")
+plt.xlabel('Number of Nodes')
+plt.ylabel('Time (seconds)')
+plt.title('Traversal Performance Comparison')
+plt.legend()
+plt.show()
+
+# Data Presentation
+comparisonData = [[n, dfs, bfs] for n, dfs, bfs in zip(nodeCounts, dfsDurations, bfsDurations)]
+comparisonDf = pd.DataFrame(comparisonData, columns=["Node Count", "DFS Time", "BFS Time"])
+print(comparisonDf)
